@@ -1,0 +1,50 @@
+---
+title: "Sarampo"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+
+# https://blog.rstudio.com/2018/10/09/rstudio-1-2-preview-reticulated-python/
+
+# https://www.digitalocean.com/community/tutorials/how-to-install-the-anaconda-python-distribution-on-ubuntu-20-04-pt
+
+knitr::opts_chunk$set(echo = TRUE)
+
+library(reticulate)
+use_condaenv("r-reticulate")
+
+# py_install("pandas")
+# py_install("numpy")
+# py_install("matplotlib")
+# py_install("matplot")
+# py_install("xlrd") # Para ler xlsx
+# py_install("openpyxl") # Para ler xlsx
+```
+
+```{python}
+import pandas as pd
+import numpy as np
+import xlrd
+import matplotlib.pyplot as plt
+import folium
+from folium.plugins import MarkerCluster
+import seaborn as sns
+```
+
+```{python}
+
+banco1 = pd.read_excel('bancosSINAN/exant DOS_ano 2000.xlsx', engine='openpyxl')
+banco2 = pd.read_excel("bancosSINAN/exant Sinan_W_ano 2000_2007.xlsx", engine='openpyxl')
+banco3 = pd.read_excel("bancosSINAN/exant Sinan_Net_ano_2007_2020.xlsx", engine='openpyxl')
+
+print(banco1.head())
+print(banco2.head())
+print(banco3.head())
+```
+
+```{python}
+casos.DT_NOTIFIC = pd.to_datetime(casos.DT_NOTIFIC)
+casos = casos.set_index('DT_NOTIFIC')
+casos.ID_AGRAVO.resample('1W').count().plot();
+```
