@@ -3,26 +3,20 @@ title: "Sarampo INOVA"
 output: html_document
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+
+```{r, echo=FALSE, results='asis', comment = NA, message = F, warning = F}
+# Chamando as bibliotecas
+library(tidyverse)
+library(readxl)
+library(RCurl)
 ```
 
-## R Markdown
+```{r, echo=FALSE, results='asis', comment = NA, message = F, warning = F}
+# Abrindo os banco a partir de uma url do diretorio do owncloud - /Inova FIOCRUZ/INOVA Sarampo 2020/bancos/SINAN
+# A ideia é não subir os bancos para o Git, só gravar os bancos no diretório local bancosSINAN
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+banco1 <- read_excel("bancosSINAN/exant DOS_ano 2000.xlsx")
+banco2 <- read_excel("bancosSINAN/exant Sinan_W_ano 2000_2007.xlsx")
+banco3 <- read_excel("bancosSINAN/exant Sinan_Net_ano_2007_2020.xlsx")
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r cars}
-summary(cars)
 ```
-
-## Including Plots
-
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
-```
-
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
