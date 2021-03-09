@@ -8,7 +8,8 @@ output: html_document
 # Chamando as bibliotecas
 library(tidyverse)
 library(readxl)
-library(RCurl)
+library(questionr)
+
 ```
 
 ```{r, echo=FALSE, results='asis', comment = NA, message = F, warning = F}
@@ -18,5 +19,25 @@ library(RCurl)
 banco1 <- read_excel("bancosSINAN/exant DOS_ano 2000.xlsx")
 banco2 <- read_excel("bancosSINAN/exant Sinan_W_ano 2000_2007.xlsx")
 banco3 <- read_excel("bancosSINAN/exant Sinan_Net_ano_2007_2020.xlsx")
+
+```
+
+```{r echo=F, fig.align="center", message=FALSE, warning=FALSE, comments=NA, out.width="90%", comment=NA, results='markdown'}
+# banco1.1 <- banco1 %>% select(NU_NOTIFIC, DT_NOTIFIC, NU_ANO, ID_MUNICIP, DT_SIN_PRI, DT_NASC, NU_IDADE_N, CS_SEXO, CS_GESTANT, CS_RACA, CS_ESCOL, SG_UF, ID_MN_RESI, DT_OBITO)
+
+banco2.1 <- banco2 %>% select(NU_NOTIFIC, DT_NOTIFIC, NU_ANO, ID_MUNICIP, DT_SIN_PRI, 
+           NU_IDADE, CS_SEXO, CS_RACA, SG_UF, ID_MN_RESI, DT_OBITO)
+
+banco3.1 <- banco3 %>% select(NU_NOTIFIC, DT_NOTIFIC, NU_ANO, ID_MUNICIP, DT_SIN_PRI, 
+           NU_IDADE_N, CS_SEXO, CS_RACA, SG_UF, ID_MN_RESI, DT_OBITO)
+banco3.1 <- rename.variable(banco3.1, "NU_IDADE_N", "NU_IDADE")
+
+# A banco3.1$DT_NASC está com problemas nesse banco
+
+banco <- rbind(banco2.1, banco3.1)
+
+# Transformando a variavel anos, quando começar por A - anos e M - Mês
+banco$idade <- as.numeric(substring(banco$NU_IDADE, 2))
+summary(banco$idade)
 
 ```
