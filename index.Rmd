@@ -90,7 +90,30 @@ banco <- banco %>% mutate (
 Column {data-width=650}
 -----------------------------------------------------------------------
 
-### Serie temporal mensal
+### Mapa
+
+
+Column {data-width=350}
+-----------------------------------------------------------------------
+
+### Distribuição anual dos casos
+
+```{r echo=F, fig.align="center", message=FALSE, warning=FALSE, comment=NA, comments=NA, out.width="90%", results='markdown'}
+tabela <- subset(banco, ano.sintoma > 1999 & ano.sintoma < 2020) %>%
+  group_by(ano.sintoma) %>%
+  summarise(casos = n())
+
+g <- ggplot(tabela, aes(x=as.factor(ano.sintoma), y=casos)) + 
+     geom_bar(stat = "identity", color="darkblue", fill=rgb(0.1,0.4,0.5,0.7) ) + 
+     ggtitle(" ") +
+     xlab("Anos") +
+     scale_fill_brewer(palette = "Set1") +
+     theme_minimal()
+  
+  ggplotly(g)
+```
+
+### Distribuição mensal dos casos
 
 ```{r echo=F, fig.align="center", message=FALSE, warning=FALSE, comment=NA, comments=NA, out.width="90%", results='markdown'}
 
@@ -111,28 +134,4 @@ ggplotly(g)
 ```
 
 
-Column {data-width=350}
------------------------------------------------------------------------
-
-### Distribuição anual dos casos
-
-```{r echo=F, fig.align="center", message=FALSE, warning=FALSE, comment=NA, comments=NA, out.width="90%", results='markdown'}
-tabela <- subset(banco, ano.sintoma > 1999 & ano.sintoma < 2020) %>%
-  group_by(ano.sintoma) %>%
-  summarise(casos = n())
-
-g <- ggplot(data = tabela, aes(x = ano.sintoma, y = casos))+
-  geom_line(color = "#00AFBB", size = 1) + 
-  ggtitle(" ") +
-  xlab("Tempo") +
- # stat_smooth(color = "#FC4E07", fill = "#FC4E07",  method = "loess") + 
-  theme_minimal()
-ggplotly(g)
-```
-
-### Chart C
-
-```{r}
-
-```
 
