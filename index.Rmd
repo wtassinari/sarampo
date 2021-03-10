@@ -1,5 +1,9 @@
 ---
+<<<<<<< HEAD
+title: "Projeto INOVA 2020 - Cobertura Vacinal contra o Sarampo"
+=======
 title: "Untitled"
+>>>>>>> 23e7d5e059695c9f9517ea5096e346c45be9c769
 output: 
   flexdashboard::flex_dashboard:
     orientation: columns
@@ -8,20 +12,146 @@ output:
 
 ```{r setup, include=FALSE}
 library(flexdashboard)
+<<<<<<< HEAD
+# https://rmarkdown.rstudio.com/flexdashboard/
+```
+
+```{r, echo=FALSE, results='asis', comment = NA, message = F, warning = F}
+# Chamando as bibliotecas
+# https://plotly.com/ggplot2/
+library(zoo)
+library(tidyverse)
+library(readxl)
+library(questionr)
+library(lubridate)
+library(plotly)
+```
+
+```{r, echo=FALSE, results='asis', comment = NA, message = F, warning = F}
+# Abrindo os banco a partir de uma url do diretorio do owncloud - /Inova FIOCRUZ/INOVA Sarampo 2020/bancos/SINAN
+# A ideia é não subir os bancos para o Git, só gravar os bancos no diretório local bancosSINAN
+
+banco1 <- read_excel("bancosSINAN/exant DOS_ano 2000.xlsx")
+banco2 <- read_excel("bancosSINAN/exant Sinan_W_ano 2000_2007.xlsx")
+banco3 <- read_excel("bancosSINAN/exant Sinan_Net_ano_2007_2020.xlsx")
+
+```
+
+```{r echo=F, fig.align="center", message=FALSE, warning=FALSE, comments=NA, out.width="90%", comment=NA, results='markdown'}
+# banco1.1 <- banco1 %>% select(NU_NOTIFIC, DT_NOTIFIC, NU_ANO, ID_MUNICIP, DT_SIN_PRI, DT_NASC, NU_IDADE_N, CS_SEXO, CS_GESTANT, CS_RACA, CS_ESCOL, SG_UF, ID_MN_RESI)
+
+banco2.1 <- banco2 %>% select(NU_NOTIFIC, DT_NOTIFIC, NU_ANO, ID_MUNICIP, DT_SIN_PRI, 
+           NU_IDADE, CS_SEXO, CS_RACA, SG_UF, ID_MN_RESI)
+
+banco3.1 <- banco3 %>% select(NU_NOTIFIC, DT_NOTIFIC, NU_ANO, ID_MUNICIP, DT_SIN_PRI, 
+           NU_IDADE_N, CS_SEXO, CS_RACA, SG_UF, ID_MN_RESI)
+banco3.1 <- rename.variable(banco3.1, "NU_IDADE_N", "NU_IDADE")
+
+# A banco3.1$DT_NASC está com problemas nesse banco
+
+banco <- rbind(banco2.1, banco3.1)
+
+banco$DT_NOTIFIC <- substring(banco$DT_NOTIFIC, 1, 10)
+banco$DT_SIN_PRI <- substring(banco$DT_SIN_PRI, 1, 10)
+
+# Transformando a variavel anos, quando começar por A - anos e M - Mês
+banco$idade <- as.numeric(substring(banco$NU_IDADE, 2))
+# summary(banco$idade)
+
+```
+
+
+```{r echo=F, fig.align="center", message=FALSE, warning=FALSE, comments=NA, out.width="90%", comment=NA, results='markdown'}
+banco <- banco %>% mutate (
+ # dtnasc = dmy(DTNASC),
+  dtnotifi = ymd(as.Date(DT_NOTIFIC)),
+  dtsintoma = ymd(as.Date(DT_SIN_PRI)),
+# idade = as.numeric(round((dtobito-dtnasc)/365, 2)),
+# IDADE = as.numeric(IDADE),
+  ano.notifi = year(dtnotifi),
+  ano.sintoma = year(dtsintoma),
+  Faixa_Etaria = ordered(case_when(
+    idade <= 1 ~ 'Menor de 1',
+    idade > 1 & idade <= 4 ~ '1 a 4',
+    idade > 4 & idade <= 9 ~ '5 a 9',
+    idade > 9 & idade <= 14 ~ '10 a 14',
+    idade > 14 & idade <= 19 ~ '15 a 19',
+    idade > 19 & idade <= 29 ~ '20 a 29',
+    idade > 29 & idade <= 39 ~ '30 a 39',
+    idade > 39 & idade <= 49 ~ '40 a 49',
+    idade > 49 & idade <= 59 ~ '50 a 59',
+    idade > 59 & idade <= 69 ~ '60 a 69',
+    idade >= 70  ~ '70 ou mais',
+    TRUE ~  'IGN'), levels = c('Menor de 1','1 a 4', '5 a 9','10 a 14',
+                                                '15 a 19','20 a 29','30 a 39','40 a 49',
+                                               '50 a 59', '60 a 69','70 ou mais')),
+  
+                      sexo = case_when(
+                      CS_SEXO == 'F' ~ 'Mulheres',
+                      CS_SEXO == 'M' ~ 'Homens',
+                      TRUE ~  'IGN'))
+=======
+>>>>>>> 23e7d5e059695c9f9517ea5096e346c45be9c769
 ```
 
 Column {data-width=650}
 -----------------------------------------------------------------------
 
+<<<<<<< HEAD
+### Mapa
+
+=======
 ### Chart A
 
 ```{r}
 
 ```
+>>>>>>> 23e7d5e059695c9f9517ea5096e346c45be9c769
 
 Column {data-width=350}
 -----------------------------------------------------------------------
 
+<<<<<<< HEAD
+### Distribuição anual dos casos
+
+```{r echo=F, fig.align="center", message=FALSE, warning=FALSE, comment=NA, comments=NA, out.width="90%", results='markdown'}
+tabela <- subset(banco, ano.sintoma > 1999 & ano.sintoma < 2020) %>%
+  group_by(ano.sintoma) %>%
+  summarise(casos = n())
+
+g <- ggplot(tabela, aes(x=as.factor(ano.sintoma), y=casos)) + 
+     geom_bar(stat = "identity", color="darkblue", fill=rgb(0.1,0.4,0.5,0.7) ) + 
+     ggtitle(" ") +
+     xlab("Anos") +
+     scale_fill_brewer(palette = "Set1") +
+     theme_minimal()
+  
+  ggplotly(g)
+```
+
+### Distribuição mensal dos casos
+
+```{r echo=F, fig.align="center", message=FALSE, warning=FALSE, comment=NA, comments=NA, out.width="90%", results='markdown'}
+
+tabela <- subset(banco, ano.sintoma > 1999 & ano.sintoma < 2020) %>%
+   mutate(mes = as.yearmon(dtsintoma, "%m/%Y")) %>%
+  group_by(mes) %>%
+  summarise(casos = n())
+
+
+g <- ggplot(data = tabela, aes(x = mes, y = casos))+
+  geom_line(color = "#00AFBB", size = 1) + 
+  ggtitle(" ") +
+  xlab("Tempo") +
+  stat_smooth(color = "#FC4E07", fill = "#FC4E07",  method = "loess") + 
+  theme_minimal()
+
+ggplotly(g)
+```
+
+
+
+=======
 ### Chart B
 
 ```{r}
@@ -34,3 +164,4 @@ Column {data-width=350}
 
 ```
 
+>>>>>>> 23e7d5e059695c9f9517ea5096e346c45be9c769
