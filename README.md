@@ -2,3 +2,7 @@
 
 ## Colaboradores
 
+- Luan
+
+- Wagner
+
