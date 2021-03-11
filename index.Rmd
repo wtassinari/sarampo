@@ -87,15 +87,52 @@ banco <- banco %>% mutate (
                       TRUE ~  'IGN'))
 ```
 
+
+
 Column {data-width=650}
 -----------------------------------------------------------------------
-### Mapa
-
+### Mapa do total de casos de Sarampo 2000-2019
 
 ```{r echo=F, fig.align="center", message=FALSE, warning=FALSE, comment=NA, comments=NA, out.width="90%", results='markdown'}
 
-boxplot(banco$idade)
+tabela.m <- subset(banco, ano.sintoma > 1999 & ano.sintoma < 2020) %>%
+  group_by(ID_MUNICIP)  %>% mutate(ID_MUNICIP = as.numeric(ID_MUNICIP))%>%
+  summarise(casos = n())
+  
+  
+library(geobr)
+municipios <- read_municipality(code_muni = "all",year=2019,
+  showProgress = FALSE) 
 
+municipios2 <- merge(municipios, tabela.m, by.x="code_muni",  by.y="ID_MUNICIP", all.x=T)
+  
+```
+
+```{r}
+
+
+library(wesanderson)
+pal <- wes_palette("Zissou1", 50, type = "continuous")
+
+library(tmap)
+library(raster)
+
+tm_shape(municipios2)+
+      tm_polygons(col = "casos",
+              id= "name_muni",
+              title="Casos de Sarampo",
+              breaks = c(0, 1, 50, 100, 1000, 36000),
+              border.col = "white", 
+              palette="Oranges")+
+      tm_legend(position=c("left","bottom")) +
+      tm_compass()+
+      tm_scale_bar()+
+      tm_borders(alpha=.5)+
+  # tm_bubbles(size = 'PIB',col = '#b3de69', title.size='PIB') +
+  tm_legend(legend.format = list(text.separator= "a")) +
+  tmap_mode("view")
+
+ 
 ```
 
 
