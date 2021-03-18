@@ -4,6 +4,8 @@ output:
   flexdashboard::flex_dashboard:
     orientation: columns
     vertical_layout: fill
+    theme: united #cerulean
+# runtime: shiny
 ---
 
 ```{r setup, include=FALSE}
@@ -87,7 +89,8 @@ banco <- banco %>% mutate (
                       TRUE ~  'IGN'))
 ```
 
-
+Pagina 1
+===
 
 Column {data-width=650}
 -----------------------------------------------------------------------
@@ -176,5 +179,29 @@ g <- ggplot(data = tabela, aes(x = mes, y = casos))+
 ggplotly(g)
 ```
 
+Pagina 2
+===
 
+Column {data-width=200}
+-----------------------------------------------------------------------
 
+### Gráfico 1
+
+```{r}
+
+```
+
+Column {.tabset}
+-----------------------------------------------------------------------
+
+### Dados 1
+
+```{r}
+
+```
+
+### Dados 2
+
+```{r}
+
+```
