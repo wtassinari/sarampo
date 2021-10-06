@@ -1,207 +1,302 @@
 ---
-title: "Projeto INOVA 2020 - Cobertura Vacinal contra o Sarampo"
+title: "Projeto INOVA FIOCRUZ 2020 - Análise geográfica da Cobertura Vacinal e a ocorrência do Sarampo no Brasil, 2000-2019"
 output: 
   flexdashboard::flex_dashboard:
-    orientation: columns
-    vertical_layout: fill
-    theme: united #cerulean
-# runtime: shiny
+    storyboard: true
+    social: menu
+    source: embed # opcao para o código aparecer   
 ---
 
 ```{r setup, include=FALSE}
-library(flexdashboard)
-# https://rmarkdown.rstudio.com/flexdashboard/
-```
+library(knitr)
+options(max.print="75")
+knitr::opts_chunk$set(echo=FALSE,
+               cache=TRUE,
+               prompt=FALSE,
+               tidy=TRUE,
+               comment=NA,
+               message=FALSE,
+               warning=FALSE,
+               cache.lazy=FALSE)
+knitr::opts_knit$set(width=75)
 
-```{r, echo=FALSE, results='asis', comment = NA, message = F, warning = F}
-# Chamando as bibliotecas
-# https://plotly.com/ggplot2/
-library(zoo)
-library(tidyverse)
-library(readxl)
-library(questionr)
-library(lubridate)
-library(plotly)
-```
-
-```{r, echo=FALSE, results='asis', comment = NA, message = F, warning = F}
-# Abrindo os banco a partir de uma url do diretorio do owncloud - /Inova FIOCRUZ/INOVA Sarampo 2020/bancos/SINAN
-# A ideia é não subir os bancos para o Git, só gravar os bancos no diretório local bancosSINAN
-
-banco1 <- read_excel("bancosSINAN/exant DOS_ano 2000.xlsx")
-banco2 <- read_excel("bancosSINAN/exant Sinan_W_ano 2000_2007.xlsx")
-banco3 <- read_excel("bancosSINAN/exant Sinan_Net_ano_2007_2020.xlsx")
-
-```
-
-```{r echo=F, fig.align="center", message=FALSE, warning=FALSE, comments=NA, out.width="90%", comment=NA, results='markdown'}
-# banco1.1 <- banco1 %>% select(NU_NOTIFIC, DT_NOTIFIC, NU_ANO, ID_MUNICIP, DT_SIN_PRI, DT_NASC, NU_IDADE_N, CS_SEXO, CS_GESTANT, CS_RACA, CS_ESCOL, SG_UF, ID_MN_RESI)
-
-banco2.1 <- banco2 %>% select(NU_NOTIFIC, DT_NOTIFIC, NU_ANO, ID_MUNICIP, DT_SIN_PRI, 
-           NU_IDADE, CS_SEXO, CS_RACA, SG_UF, ID_MN_RESI)
-
-banco3.1 <- banco3 %>% select(NU_NOTIFIC, DT_NOTIFIC, NU_ANO, ID_MUNICIP, DT_SIN_PRI, 
-           NU_IDADE_N, CS_SEXO, CS_RACA, SG_UF, ID_MN_RESI)
-banco3.1 <- rename.variable(banco3.1, "NU_IDADE_N", "NU_IDADE")
-
-# A banco3.1$DT_NASC está com problemas nesse banco
-
-banco <- rbind(banco2.1, banco3.1)
-
-banco$DT_NOTIFIC <- substring(banco$DT_NOTIFIC, 1, 10)
-banco$DT_SIN_PRI <- substring(banco$DT_SIN_PRI, 1, 10)
-
-# Transformando a variavel anos, quando começar por A - anos e M - Mês
-banco$idade <- as.numeric(substring(banco$NU_IDADE, 2))
-# summary(banco$idade)
-
-```
-
-
-```{r echo=F, fig.align="center", message=FALSE, warning=FALSE, comments=NA, out.width="90%", comment=NA, results='markdown'}
-banco <- banco %>% mutate (
- # dtnasc = dmy(DTNASC),
-  dtnotifi = ymd(as.Date(DT_NOTIFIC)),
-  dtsintoma = ymd(as.Date(DT_SIN_PRI)),
-# idade = as.numeric(round((dtobito-dtnasc)/365, 2)),
-# IDADE = as.numeric(IDADE),
-  ano.notifi = year(dtnotifi),
-  ano.sintoma = year(dtsintoma),
-  Faixa_Etaria = ordered(case_when(
-    idade <= 1 ~ 'Menor de 1',
-    idade > 1 & idade <= 4 ~ '1 a 4',
-    idade > 4 & idade <= 9 ~ '5 a 9',
-    idade > 9 & idade <= 14 ~ '10 a 14',
-    idade > 14 & idade <= 19 ~ '15 a 19',
-    idade > 19 & idade <= 29 ~ '20 a 29',
-    idade > 29 & idade <= 39 ~ '30 a 39',
-    idade > 39 & idade <= 49 ~ '40 a 49',
-    idade > 49 & idade <= 59 ~ '50 a 59',
-    idade > 59 & idade <= 69 ~ '60 a 69',
-    idade >= 70  ~ '70 ou mais',
-    TRUE ~  'IGN'), levels = c('Menor de 1','1 a 4', '5 a 9','10 a 14',
-                                                '15 a 19','20 a 29','30 a 39','40 a 49',
-                                               '50 a 59', '60 a 69','70 ou mais')),
-  
-                      sexo = case_when(
-                      CS_SEXO == 'F' ~ 'Mulheres',
-                      CS_SEXO == 'M' ~ 'Homens',
-                      TRUE ~  'IGN'))
-```
-
-Pagina 1
-===
-
-Column {data-width=650}
------------------------------------------------------------------------
-### Mapa do total de casos de Sarampo 2000-2019
-
-```{r echo=F, fig.align="center", message=FALSE, warning=FALSE, comment=NA, comments=NA, out.width="90%", results='markdown'}
-
-tabela.m <- subset(banco, ano.sintoma > 1999 & ano.sintoma < 2020) %>%
-  group_by(ID_MUNICIP)  %>% mutate(ID_MUNICIP = as.numeric(ID_MUNICIP))%>%
-  summarise(casos = n())
-  
-  
-library(geobr)
-municipios <- read_municipality(code_muni = "all",year=2019,
-  showProgress = FALSE) 
-
-municipios2 <- merge(municipios, tabela.m, by.x="code_muni",  by.y="ID_MUNICIP", all.x=T)
-  
 ```
 
 ```{r}
+library(flexdashboard)
+library(ggplot2)
+library(readxl)
+library(plotly)
+library(ggmap)
 
+library(zoo)
+library(questionr)
+library(lubridate)
+library(stringi)
+library(dplyr)
+
+library(geobr)
+library(tmap)
+library(sf)
+
+library(hrbrthemes)
+library(viridis)
+
+# devtools::install_github('rstudio/rmarkdown@3953abd473e9230faca4dcad996d5d1b35c3b3a7')
+# devtools::install_github('gagolews/stringi')
+# devtools::install_github("rpradosiqueira/brazilmaps")
+# https://github.com/sagarkulkarny/HR-Movement-Dashboard-using-Flexdashboard-
+
+```
+
+
+Inputs {.sidebar}
+-----------------------------------------------------------------------
+
+**Análise geográfica da Cobertura Vacinal e a ocorrência
+do Sarampo no Brasil, 2000-2019**
+
+O presente estudo pretende investigar a cobertura vacinal com a ocorrência de casos de sarampo para
+identificar regiões brasileiras com maior heterogeneidade na evolução temporal
+e a distribuição geográfica da cobertura nacional da vacina dupla e tríplice viral.
+
+Envolvidos:
+
+**Coordenação** 
+
+- Yara Hökerberg ([yarahahr@ini.fiocruz.br]())
+
+- Raquel  Vasconcelos ([raquel.vasconcellos@ini.fiocruz.br]())
+
+**Equipe:**
+
+- Lívia Moura ([lica.moura.lima@gmail.com]())
+
+- Luan da Silva ([snoedasilva@gmail.com]())
+
+- Sônia Regina Lambert ([sonia.lambert@ini.fiocruz.br]())
+
+- Wagner Tassinari ([tassinari@ufrrj.br]())
+
+
+```{r}
+# lendo o arquivo com a cobertura or regioes
+banco0 <- read.csv('bancos/cobvac_porregiao.csv',sep=';',dec=',')
+
+regiao.map <- read_region(year=2018, showProgress = F)   # region
+
+```
+
+### Distribuição temporal da cobertura Vacinal da tríplice viral, Brasil e Regiões - 2000 a 2020.
+
+
+```{r}
+g1 <- ggplot(data=banco0,mapping= aes(x=ano,y=cobertura))+
+  geom_line(mapping=aes(color=regiao),size=0.9)+
+  labs(x= "ano",
+       y="Cobertura vacinal (%)",
+       title="")+
+  geom_hline(yintercept=c(95),linetype="dotted",
+             color = "red", size=0.3)+
+  scale_x_continuous(breaks=c(2000:2020))+
+  theme_classic()+
+  scale_y_continuous(breaks=c(75,100,120))+
+  scale_color_discrete(name="")+
+  annotate("text", x = 2000, y = 93, label = "95%")
+
+ggplotly(g1)
+```
+
+
+
+```{r}
+banco1 <- subset(banco0, regiao != "Brasil")
+banco2000 <- subset(banco1, ano==2000)
+banco2001 <- subset(banco1, ano==2001)
+banco2002 <- subset(banco1, ano==2002)
+banco2003 <- subset(banco1, ano==2003)
+banco2004 <- subset(banco1, ano==2004)
+
+banco2000a2004 <- banco2000 %>%
+  mutate(cobertura2000a2004 = (banco2000$cobertura + banco2001$cobertura + banco2002$cobertura + banco2003$cobertura +        banco2004$cobertura)/5,
+         Ano = "2000 a 2004",
+         code_region = case_when(
+           regiao == "Norte" ~ 1,
+           regiao == "Nordeste" ~ 2,
+           regiao == "Sudeste" ~ 3,
+           regiao == "Sul" ~ 4,
+           regiao == "Centro oeste" ~ 5,),
+         code_region = as.factor(code_region))
+
+banco2005 <- subset(banco1, ano==2005)
+banco2006 <- subset(banco1, ano==2006)
+banco2007 <- subset(banco1, ano==2007)
+banco2008 <- subset(banco1, ano==2008)
+banco2009 <- subset(banco1, ano==2009)
+
+banco2005a2009 <- banco2000 %>%
+  mutate(cobertura2005a2009 = (banco2005$cobertura + banco2006$cobertura + banco2007$cobertura + banco2008$cobertura +        banco2009$cobertura)/5,
+         Ano = "2005 a 2009",
+         code_region = case_when(
+           regiao == "Norte" ~ 1,
+           regiao == "Nordeste" ~ 2,
+           regiao == "Sudeste" ~ 3,
+           regiao == "Sul" ~ 4,
+           regiao == "Centro oeste" ~ 5,),
+         code_region = as.factor(code_region))
+
+banco2010 <- subset(banco1, ano==2010)
+banco2011 <- subset(banco1, ano==2011)
+banco2012 <- subset(banco1, ano==2012)
+banco2013 <- subset(banco1, ano==2013)
+banco2014 <- subset(banco1, ano==2014)
+
+banco2010a2014 <- banco2000 %>%
+  mutate(cobertura2010a2014 = (banco2010$cobertura + banco2011$cobertura + banco2012$cobertura + banco2013$cobertura +        banco2014$cobertura)/5,
+         Ano = "2010 a 2014",
+         code_region = case_when(
+           regiao == "Norte" ~ 1,
+           regiao == "Nordeste" ~ 2,
+           regiao == "Sudeste" ~ 3,
+           regiao == "Sul" ~ 4,
+           regiao == "Centro oeste" ~ 5,),
+         code_region = as.factor(code_region))
+
+banco2015 <- subset(banco1, ano==2015)
+banco2016 <- subset(banco1, ano==2016)
+banco2017 <- subset(banco1, ano==2016)
+banco2018 <- subset(banco1, ano==2018)
+banco2019 <- subset(banco1, ano==2019)
+banco2020 <- subset(banco1, ano==2020)
+
+banco2015a2020 <- banco2000 %>%
+  mutate(cobertura2015a2020 = (banco2015$cobertura + banco2016$cobertura + banco2017$cobertura + banco2018$cobertura +        banco2019$cobertura + banco2020$cobertura)/6,
+         Ano = "2015 a 2020",
+         code_region = case_when(
+           regiao == "Norte" ~ 1,
+           regiao == "Nordeste" ~ 2,
+           regiao == "Sudeste" ~ 3,
+           regiao == "Sul" ~ 4,
+           regiao == "Centro oeste" ~ 5,),
+         code_region = as.factor(code_region))
+```
+
+### Distribuição da cobertura Vacinal da tríplice viral, Brasil e Regiões - 2000 a 2020.
+
+```{r}
+g2 <- banco0 %>%
+  ggplot(aes(y = cobertura, x = as.factor(ano))) + 
+    geom_violin(aes(fill = as.factor(ano)),  
+                 binaxis = "y",         
+                 binwidth = 0.1,       
+                 stackdir = "center"   
+                 ) +
+  geom_hline(yintercept=c(95),linetype="dotted",
+             color = "red", size=0.3) +
+  annotate("text", x = "2000", y = 93, label = "95%", col="red") +
+    stat_summary(fun.y = median, fun.ymin = median, fun.ymax = median,
+                 geom = "crossbar", width = 0.5) +
+    ylab("Cobertura (%)") + xlab("Anos") +
+   ggtitle("Distribuição da cobertura Vacinal da tríplice viral entre o Brasil e Regiões - 2000 a 2020") +
+  theme_minimal()
+
+ggplotly(g2)
+```
+
+### Distribuição da cobertura Vacinal da tríplice viral entre o Brasil e Regiões - 2000 a 2020.
+
+```{r}
+g3 <- banco0 %>%
+  ggplot(aes(x=regiao, y=cobertura, fill=regiao)) +
+    geom_boxplot() +
+    scale_fill_viridis(discrete = TRUE, alpha=0.6) +
+    geom_jitter(color="black", size=0.4, alpha=0.9) +
+  geom_hline(yintercept=c(95),linetype="dotted",
+             color = "red", size=0.3) +
+  annotate("text", x = "Brasil", y = 93, label = "95%", col="red") +
+    theme_ipsum() +
+    theme(
+      legend.position="none",
+      plot.title = element_text(size=11)
+    ) +
+    ggtitle("Distribuição da cobertura Vacinal da tríplice viral entre o Brasil e Regiões - 2000 a 2020") +
+    ylab("Cobertura (%)") + xlab("Regiões") 
+
+ggplotly(g3)
+```
+
+
+### Distribuição Geográfica da cobertura vacinal pelo Brasil por grandes regiões por triênios 2000 a 2020.
+
+
+<!-- ```{r} -->
+<!-- regiao.map$code_region <- as.factor(regiao.map$code_region) -->
+
+<!-- # Fazendo o merge entre a media da cobertura e a malha -->
+<!-- regiao.map2000a2004 <- merge(banco2000a2004, regiao.map, by="code_region")   -->
+<!-- regiao.map2005a2009 <- merge(banco2005a2009, regiao.map, by="code_region")  -->
+<!-- regiao.map2010a2014 <- merge(banco2010a2014, regiao.map, by="code_region")   -->
+<!-- regiao.map2015a2020 <- merge(banco2015a2020, regiao.map, by="code_region")   -->
+
+<!-- st_geometry(regiao.map2000a2004) <- st_geometry(regiao.map) -->
+<!-- st_geometry(regiao.map2005a2009) <- st_geometry(regiao.map) -->
+<!-- st_geometry(regiao.map2015a2020) <- st_geometry(regiao.map) -->
+<!-- st_geometry(regiao.map2010a2014) <- st_geometry(regiao.map) -->
+
+
+<!-- library(wesanderson) -->
+<!-- pal <- wes_palette("Zissou1", 50, type = "continuous") -->
+
+<!-- map1 <- tm_shape(regiao.map2000a2004) + -->
+<!--   tm_polygons(col='cobertura', title="Cobertura (%)", breaks=c(75, 85, 95, 110), border.col = "white",  -->
+<!--               palette="Oranges", popup.vars = c("cobertura"),  title.col = "Cobertura") + -->
+<!--               tmap_mode("view") -->
+
+<!-- map2 <- tm_shape(regiao.map2005a2009) + -->
+<!--   tm_polygons(col='cobertura', title="Cobertura (%)", breaks=c(75, 85, 95, 110), border.col = "white",  -->
+<!--               palette="Oranges", popup.vars = c("cobertura"),  title.col = "Cobertura") + -->
+<!--               tmap_mode("view") -->
+
+<!-- map3 <- tm_shape(regiao.map2010a2014) + -->
+<!--   tm_polygons(col='cobertura', title="Cobertura (%)", breaks=c(75, 85, 95, 110), border.col = "white",  -->
+<!--               palette="Oranges", popup.vars = c("cobertura"),  title.col = "Cobertura")+ -->
+<!--               tmap_mode("view") -->
+
+<!-- map4 <- tm_shape(regiao.map2015a2020) + -->
+<!--   tm_polygons(col='cobertura', title="Cobertura (%)", breaks=c(75, 85, 95, 110), border.col = "white",  -->
+<!--               palette="Oranges", popup.vars = c("cobertura"),  title.col = "Cobertura") + -->
+<!--               tmap_mode("view") -->
+
+<!-- tmap_arrange(map1, map2, map3, map4) -->
+<!-- ``` -->
+
+
+```{r}
+# Baixando a malha das regioes
+
+regiao.map$code_region <- as.factor(regiao.map$code_region)
+
+banco2000a2020 <- cbind(banco2000a2004, banco2005a2009, banco2010a2014, banco2015a2020)
+banco2000a2020 <- banco2000a2020 %>% select(cobertura2000a2004, cobertura2005a2009, cobertura2010a2014, cobertura2015a2020) %>%
+  mutate(code_region = c("1","2","3","4","5"))
+
+regiao.map2000a2020 <- merge(banco2000a2020, regiao.map, by="code_region") 
+
+st_geometry(regiao.map2000a2020) <- st_geometry(regiao.map)
 
 library(wesanderson)
 pal <- wes_palette("Zissou1", 50, type = "continuous")
 
-library(tmap)
-library(raster)
+tmap_mode("view");
+tm_shape(regiao.map2000a2020) +
+  tm_polygons(col=c("cobertura2000a2004", "cobertura2005a2009", "cobertura2010a2014", "cobertura2015a2020"),
+              breaks=c(85, 90, 95, 100, 105, 110, 115), border.col = "white", palette="Oranges",
+              title.col = "name_region") +
+  tm_facets(as.layers = TRUE)
 
-tm_shape(municipios2)+
-      tm_polygons(col = "casos",
-              id= "name_muni",
-              title="Casos de Sarampo",
-              breaks = c(0, 1, 50, 100, 1000, 36000),
-              border.col = "white", 
-              palette="Oranges")+
-      tm_legend(position=c("left","bottom")) +
-      tm_compass()+
-      tm_scale_bar()+
-      tm_borders(alpha=.5)+
-  # tm_bubbles(size = 'PIB',col = '#b3de69', title.size='PIB') +
-  tm_legend(legend.format = list(text.separator= "a")) +
-  tmap_mode("view")
-
+# tm_shape(regiao.map2000a2020) +
+#   tm_polygons(col=c("cobertura2000a2004", "cobertura2005a2009", "cobertura2010a2014", "cobertura2015a2020"), breaks=c(75, 85, 95, 110), border.col = "white", palette="Oranges") +
+#     tm_facets(sync = TRUE, ncol = 2, nrow = 2) 
  
-```
-
-
-Column {data-width=350}
------------------------------------------------------------------------
-
-### Distribuição anual dos casos
-
-```{r echo=F, fig.align="center", message=FALSE, warning=FALSE, comment=NA, comments=NA, out.width="90%", results='markdown'}
-tabela <- subset(banco, ano.sintoma > 1999 & ano.sintoma < 2020) %>%
-  group_by(ano.sintoma) %>%
-  summarise(casos = n())
-
-g <- ggplot(tabela, aes(x=as.factor(ano.sintoma), y=casos)) + 
-     geom_bar(stat = "identity", color="darkblue", fill=rgb(0.1,0.4,0.5,0.7) ) + 
-     ggtitle(" ") +
-     xlab("Anos") +
-     scale_fill_brewer(palette = "Set1") +
-     theme_minimal()
-  
-  ggplotly(g)
-```
-
-### Distribuição mensal dos casos
-
-```{r echo=F, fig.align="center", message=FALSE, warning=FALSE, comment=NA, comments=NA, out.width="90%", results='markdown'}
-
-tabela <- subset(banco, ano.sintoma > 1999 & ano.sintoma < 2020) %>%
-   mutate(mes = as.yearmon(dtsintoma, "%m/%Y")) %>%
-  group_by(mes) %>%
-  summarise(casos = n())
-
-
-g <- ggplot(data = tabela, aes(x = mes, y = casos))+
-  geom_line(color = "#00AFBB", size = 1) + 
-  ggtitle(" ") +
-  xlab("Tempo") +
-  stat_smooth(color = "#FC4E07", fill = "#FC4E07",  method = "loess") + 
-  theme_minimal()
-
-ggplotly(g)
-```
-
-Pagina 2
-===
-
-Column {data-width=200}
------------------------------------------------------------------------
-
-### Gráfico 1
-
-```{r}
-
-```
-
-Column {.tabset}
------------------------------------------------------------------------
-
-### Dados 1
-
-```{r}
-
-```
-
-### Dados 2
-
-```{r}
 
 ```
