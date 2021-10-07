@@ -62,7 +62,7 @@ e a distribuição geográfica da cobertura nacional da vacina dupla e tríplice
 
 Envolvidos:
 
-**Coordenação** 
+**Coordenação:** 
 
 - Yara Hökerberg ([yarahahr@ini.fiocruz.br]())
 
@@ -300,3 +300,27 @@ tm_shape(regiao.map2000a2020) +
  
 
 ```
+
+### IDH + Pop + Cobertura
+
+```{r}
+code_region <- c(1,2,3,4,5)
+pop2010 <- c(15864454,	53081950,	80364410,	27386891,	12482963)
+IDH <- c(0.667, 0.663, 0.766, 0.754, 0.757)
+pop.idh2010 <- data_frame(code_region, pop2010, IDH)
+
+pop.idh2010 <- merge(banco2015a2020, pop.idh2010, by="code_region") 
+
+g5 <- ggplot(pop.idh2010, aes(x=IDH, y=cobertura2015a2020, size=pop2010, fill=regiao)) +
+    geom_point(alpha=0.7, shape=21,  color="black") +
+    scale_size(range = c(3, 12), name="População 2010") +
+    scale_fill_viridis(discrete=TRUE, guide=FALSE, option="A") +
+    theme_ipsum() +
+  #  theme(legend.position="bottom") +
+    ylab("Cobertura Vacinal 2015 a 2020 (%)") +
+    xlab("IDH") 
+  # theme(legend.position="none")
+
+ggplotly(g5)
+```
+
